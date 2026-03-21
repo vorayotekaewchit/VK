@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VK — 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#000;
+  --fg:#e8e2d6;
+  --fg2:rgba(232,226,214,.72);
+  --fg3:rgba(232,226,214,.42);
+  --fg4:rgba(232,226,214,.08);
+  --ac:#c8ff6e;
+  --a2:rgba(200,255,110,.08);
+  --hot:#ff4d1c;
+  --b:rgba(232,226,214,.1);
+  --b2:rgba(232,226,214,.28);
+  --f:'IBM Plex Mono',monospace;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--f);color:var(--fg); }
+
+/* dither canvas */
+#dc{position:fixed;inset:0;z-index:0;image-rendering:pixelated;}
+
+/* overlays — CSS only, zero JS */
+.ov-scan{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.055) 2px,rgba(0,0,0,.055) 4px);}
+.ov-dots{position:fixed;inset:0;z-index:2;pointer-events:none;background-image:radial-gradient(circle,rgba(232,226,214,.035) 1px,transparent 1px);background-size:24px 24px;}
+.ov-vig{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 60% 70% at center,transparent 20%,rgba(0,0,0,.6) 65%,rgba(0,0,0,.88) 100%);}
+
+/* ascii bg */
+#god{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:.065;}
+#god pre{font-size:7px;line-height:1.15;color:var(--ac);white-space:pre;letter-spacing:.03em;animation:gb 10s ease-in-out infinite;}
+@keyframes gb{0%,100%{opacity:.5}50%{opacity:1} }
+
+/* layout */
+#hud{position:fixed;inset:0;z-index:10;display:grid;grid-template-columns:186px 1fr 186px;grid-template-rows:25px 1fr 36px;}
+
+/* top bar */
+#top{grid-column:1/-1;grid-row:1;display:flex;align-items:center;gap:9px;padding:0 16px;border-bottom:1px solid var(--b);background:rgba(0,0,0,.9);}
+.tl{font-size:11px;letter-spacing:.22em;color:var(--fg);}
+.tdv{width:1px;height:11px;background:var(--b2);flex-shrink:0;}
+.ti{font-size:8px;letter-spacing:.17em;color:var(--fg3);text-transform:uppercase;white-space:nowrap;}
+.ti.lv{color:var(--ac);animation:lp 2.4s ease-in-out infinite;}
+@keyframes lp{0%,100%{opacity:.35}50%{opacity:1}}
+.tk{flex:1;overflow:hidden;font-size:7.5px;letter-spacing:.13em;color:var(--fg3);text-transform:uppercase;}
+.tk-i{display:inline-block;white-space:nowrap;animation:tk 60s linear infinite;}
+@keyframes tk{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+#clk{font-size:9px;letter-spacing:.15em;color:var(--ac);min-width:54px;text-align:right;}
+
+/* panels — no backdrop-filter */
+.panel{padding:13px 11px;background:rgba(0,0,0,.78);display:flex;flex-direction:column;gap:9px;overflow:hidden;}
+#pl{grid-column:1;grid-row:2;border-right:1px solid var(--b);overflow-y:auto;scrollbar-width:none;}
+#pr{grid-column:3;grid-row:2;border-left:1px solid var(--b);overflow-y:auto;scrollbar-width:none;}
+#pl::-webkit-scrollbar, #pr::-webkit-scrollbar { display: none; }
+#stage{grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:center;}
+
+/* bottom nav */
+#bot{grid-column:1/-1;grid-row:3;display:flex;align-items:stretch;border-top:1px solid var(--b);background:rgba(0,0,0,.92);}
+.nn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--b);font-size:8px;letter-spacing:.18em;color:var(--fg3);text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s;position:relative;}
+.nn:last-child{border-right:none;}
+.nn::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--ac);transform:scaleX(0);transition:transform .2s;}
+.nn:hover::after,.nn.on::after{transform:scaleX(1);}
+.nn:hover,.nn.on{color:var(--fg);background:rgba(200,255,110,.03);}
+.nk{color:var(--ac);font-size:7px;}
+
+/* hud widgets */
+.hl{font-size:7px;letter-spacing:.26em;color:var(--fg3);text-transform:uppercase;margin-bottom:3px;display:flex;justify-content:space-between;}
+.hl .v{color:var(--fg2);letter-spacing:.09em;}
+.sep{height:1px;background:var(--b);margin:4px 0;}
+.hr{display:flex;justify-content:space-between;padding:1.5px 0;font-size:8px;}
+.hr .k{color:var(--fg3);}
+.hr .v{color:var(--fg2);}
+.hr .g{color:var(--ac);}
+.hr .h{color:var(--hot);}
+.wave{height:15px;display:flex;align-items:flex-end;gap:1px;}
+.wb{width:2px;background:var(--fg2);min-height:2px;opacity:.4;}
+.nsvg{width:100%;height:20px;display:block;}
+.lf{overflow:hidden;display:flex;flex-direction:column;gap:1px;}
+.ll{font-size:8px;color:var(--fg3);padding:1px 0;display:flex;gap:4px;align-items:center;white-space:nowrap;overflow:hidden;}
+.li{width:5px;height:5px;background:currentColor;flex-shrink:0;}
+.ll.a{color:rgba(200,255,110,.6);}
+.ll.e{color:rgba(255,77,28,.6);}
+.ll.s{color:rgba(100,200,255,.6);}
+.sym{font-size:7.5px;color:var(--fg3);line-height:1.5;word-break:break-all;overflow:hidden;opacity:.6;}
+.bar{display:flex;align-items:center;gap:7px;padding:1.5px 0;font-size:8px;}
+.bn{min-width:58px;color:var(--fg2);letter-spacing:.04em;}
+.bt{flex:1;height:1px;background:var(--fg4);}
+.bf{height:100%;background:var(--fg2);}
+.bv{min-width:17px;text-align:right;color:var(--fg3);font-size:7px;}
+
+/* hero */
+#hero{
+  padding: 36px 40px;
+  max-width: 580px;
+  width: 100%;
+  /* Dark backing so dither never bleeds through text */
+  background: rgba(0,0,0,.72);
+  border: 1px solid var(--b);
+  position: relative;
+}
+/* Thin accent rule on left edge — phase-coloured */
+#hero::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;bottom:0;
+  width:2px;
+  background:var(--ac);
+  opacity:.5;
+}
+.href{font-size:8px;letter-spacing:.28em;color:var(--fg2);margin-bottom:14px;display:flex;align-items:center;gap:9px;}
+.href::before{content:'';display:inline-block;width:16px;height:1px;background:var(--ac);}
+.hname{font-size:clamp(1.9rem,4vw,3.4rem);font-weight:300;letter-spacing:.02em;color:var(--fg);line-height:.96;margin-bottom:10px;}
+.hname .dim{color:var(--fg2);opacity:1;font-weight:300;}
+.htag{font-size:9px;letter-spacing:.16em;color:var(--fg2);margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.htag .s{color:var(--ac);opacity:.5;}
+.hdoc{font-size:9px;line-height:1.8;color:var(--fg2);letter-spacing:.02em;border-left:2px solid var(--ac);padding-left:12px;margin-bottom:20px;opacity:.8;}
+.hdoc em{color:var(--fg);font-style:normal;}
+.ruler{display:flex;align-items:center;gap:9px;font-size:8px;letter-spacing:.18em;color:var(--fg2);margin-bottom:20px;}
+.rn{font-size:13px;color:var(--fg);font-weight:400;line-height:1;}
+.rl{flex:1;height:1px;background:var(--b2);}
+.btns{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.eb{font-family:var(--f);font-size:8px;letter-spacing:.18em;text-transform:uppercase;padding:7px 16px;border:1px solid var(--b2);background:rgba(0,0,0,.5);color:var(--fg);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.eb:hover{border-color:var(--ac);color:var(--ac);background:rgba(0,0,0,.7);}
+.eb.p{border-color:var(--ac);color:var(--ac);background:rgba(0,0,0,.6);}
+.eb.ht{border-color:var(--hot);color:var(--hot);}
+.eb.ht:hover{background:rgba(0,0,0,.7);}
+.pips{display:flex;gap:4px;margin-top:10px;}
+.pip{width:16px;height:2px;background:var(--b2);transition:background .3s,width .3s;cursor:pointer;}
+.pip.on{background:var(--ac);width:28px;}
+/* Phase 01 indicator: white so it doesn’t track the theme accent; other phases keep --ac */
+#pips .pip:first-child.on{background:#fff;box-shadow:0 0 12px rgba(255,255,255,.2);}
+.hland{margin-top:12px;font-size:7px;letter-spacing:.2em;color:var(--fg2);text-transform:uppercase;line-height:1.6;max-width:32em;}
+.hland em{font-style:normal;color:var(--fg);opacity:.95;}
+.hint{margin-top:10px;}
+
+/* scroll sequence indicator */
+#seq{
+  position:fixed;left:50%;bottom:44px;transform:translateX(-50%);
+  z-index:15;display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,.88);border:1px solid var(--b);
+  padding:5px 14px;
+  pointer-events:none;
+  opacity:0;transition:opacity .3s;
+}
+#seq.vis{opacity:1;}
+.sq-pip{width:20px;height:1px;background:var(--b2);transition:background .2s,width .2s;}
+.sq-pip.on{background:var(--ac);width:30px;}
+.sq-pip.done{background:var(--fg3);}
+#seq-label{font-size:7px;letter-spacing:.22em;color:var(--ac);margin-left:4px;min-width:24px;}
+#seq-auto{font-size:7px;letter-spacing:.15em;color:var(--fg3);margin-left:8px;}
+/* scroll mode — modal slides from bottom edge of topbar */
+#modal.scroll-mode{border-top-color:var(--ac);}
+/* auto-close countdown bar */
+#abar{
+  position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:var(--ac);transform-origin:left;transform:scaleX(1);
+  transition:transform 3.5s linear;
+}
+#abar.run{transform:scaleX(0);}
+#abar.hidden{display:none;}
+
+/* dither ctrl */
+#dctrl{position:fixed;bottom:44px;right:10px;z-index:15;display:flex;flex-direction:column;gap:3px;}
+.db{background:rgba(0,0,0,.92);border:1px solid var(--b);color:var(--fg3);font-family:var(--f);font-size:7px;letter-spacing:.15em;padding:3px 8px;cursor:pointer;transition:border-color .15s,color .15s;text-transform:uppercase;white-space:nowrap;}
+.db:hover,.db.on{border-color:var(--ac);color:var(--ac);}
+
+/* phase flash */
+#pf{position:fixed;inset:0;z-index:200;background:var(--ac);opacity:0;pointer-events:none;}
+@keyframes fl{0%{opacity:0}12%{opacity:.15}100%{opacity:0}}
+#pf.fire{animation:fl .4s ease-out forwards;}
+
+/* modal */
+#modal{position:fixed;inset:25px 0 36px 0;z-index:50;display:none;grid-template-columns:184px 1fr;background:rgba(0,0,0,.97);border-top:1px solid var(--b2);overflow:hidden;animation:rv .25s ease;}
+#modal.open{display:grid;}
+@keyframes rv{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#mside{border-right:1px solid var(--b);padding:16px 13px;display:flex;flex-direction:column;background:rgba(0,0,0,.5);}
+#mref{font-size:7px;letter-spacing:.28em;color:var(--fg3);text-transform:uppercase;margin-bottom:4px;}
+#mtitle{font-size:12px;letter-spacing:.16em;color:var(--fg);text-transform:uppercase;margin-bottom:2px;}
+#msub{font-size:8px;color:var(--ac);letter-spacing:.12em;margin-bottom:12px;}
+.mni{font-size:8px;letter-spacing:.12em;color:var(--fg3);padding:4px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:color .15s;display:flex;align-items:center;gap:4px;}
+.mni:hover{color:var(--fg);}
+.mni .arr{color:var(--ac);font-size:7px;opacity:0;transition:opacity .15s;}
+.mni:hover .arr{opacity:1;}
+.msys{margin-top:auto;font-size:7px;color:var(--fg3);line-height:1.9;letter-spacing:.09em;border-top:1px solid var(--b);padding-top:9px;}
+.msys .ac{color:var(--ac);}
+.mcl{background:none;border:1px solid var(--b);color:var(--fg3);font-family:var(--f);font-size:7px;letter-spacing:.18em;padding:5px 9px;cursor:pointer;text-transform:uppercase;transition:all .15s;align-self:flex-start;margin-top:9px;}
+.mcl:hover{border-color:var(--hot);color:var(--hot);}
+#mbody{padding:28px 40px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--b2) transparent;}
+#mbody::-webkit-scrollbar{width:2px;}
+#mbody::-webkit-scrollbar-thumb{background:var(--b2);}
+
+/* modal content */
+.mh1{font-size:clamp(1.4rem,3vw,2.6rem);font-weight:300;color:var(--fg);letter-spacing:.02em;line-height:1.0;margin-bottom:16px;}
+.mh1 .ac{color:var(--ac);}
+.mh2{font-size:10px;letter-spacing:.18em;color:var(--fg2);text-transform:uppercase;margin:20px 0 7px;}
+.mbt{font-size:11px;color:var(--fg3);line-height:1.9;margin-bottom:11px;letter-spacing:.02em;}
+.mbt strong{color:var(--fg);font-weight:400;}
+.mbt em{color:var(--ac);font-style:normal;}
+.mdiv{height:1px;background:var(--b);margin:16px 0;}
+.mlbl{font-size:7px;letter-spacing:.28em;color:var(--fg3);text-transform:uppercase;margin-bottom:7px;opacity:.6;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.mc{border:1px solid var(--b);padding:11px;cursor:pointer;transition:border-color .15s;}
+.mc:hover{border-color:var(--b2);}
+.mct{font-size:10px;color:var(--fg);letter-spacing:.09em;margin-bottom:4px;}
+.mcs{font-size:9px;color:var(--fg3);line-height:1.7;}
+.mpills{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.mp{font-size:7px;letter-spacing:.12em;padding:2px 6px;border:1px solid var(--b);color:var(--fg3);text-transform:uppercase;}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--b);font-size:9px;}
+.ml{font-size:7px;letter-spacing:.16em;color:var(--fg3);min-width:65px;}
+.mlink{color:var(--fg);font-size:9px;letter-spacing:.09em;text-decoration:none;border-bottom:1px solid var(--b);padding-bottom:1px;transition:color .15s,border-color .15s;}
+.mlink:hover{color:var(--ac);border-color:var(--ac);}
+.mterm{background:rgba(0,0,0,.6);border:1px solid var(--b);padding:11px;font-size:9px;margin:11px 0;}
+.mtl{color:var(--fg3);padding:1.5px 0;display:flex;}
+.mtp{color:var(--ac);margin-right:8px;flex-shrink:0;}
+.mto{padding-left:13px;color:rgba(232,226,214,.24);}
+.mto.g{color:rgba(200,255,110,.55);}
+.mcur{animation:blink .9s step-end infinite;display:inline-block;}
+@keyframes blink{50%{opacity:0}}
+.msbar{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:9px;}
+.msn{min-width:76px;color:var(--fg2);letter-spacing:.04em;}
+.mst{flex:1;height:1px;background:var(--b);}
+.msf{height:100%;background:var(--fg2);}
+.msp{min-width:24px;text-align:right;color:var(--fg3);font-size:8px;}
+.mlrow{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--b);font-size:9px;color:var(--fg3);}
+.mldots{display:flex;gap:3px;}
+.mld{width:5px;height:5px;border:1px solid var(--b2);}
+.mld.on{background:var(--fg2);border-color:var(--fg2);}
+.docblock{border-left:2px solid var(--ac);padding:9px 13px;margin:13px 0;background:rgba(200,255,110,.02);position:relative;}
+.docblock::before{content:attr(data-r);position:absolute;top:-7px;left:8px;font-size:7px;letter-spacing:.22em;color:var(--ac);background:#000;padding:0 4px;text-transform:uppercase;}
+.doctxt{font-size:10px;color:var(--fg2);line-height:1.9;font-weight:300;letter-spacing:.02em;font-style:italic;}
+.ptk{font-size:8px;color:var(--fg3);padding:4px 8px;cursor:pointer;border:1px solid transparent;display:flex;gap:5px;transition:all .12s;}
+.ptk:hover,.ptk.on{color:var(--fg);border-color:var(--b);background:rgba(200,255,110,.03);}
+.pnum{opacity:.35;min-width:14px;}
+.pprog{height:1px;background:var(--b);cursor:pointer;margin:7px 0;position:relative;}
+.pfill{height:100%;background:var(--fg2);width:0%;transition:width .1s;}
+.pctrls{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.pb{background:none;border:1px solid var(--b);color:var(--fg3);font-family:var(--f);font-size:7px;padding:3px 7px;cursor:pointer;letter-spacing:.09em;transition:all .12s;text-transform:uppercase;}
+.pb:hover,.pb.on{border-color:var(--b2);color:var(--fg);}
+.dropz{border:1px dashed var(--b2);padding:7px;text-align:center;font-size:8px;color:var(--fg3);cursor:pointer;margin-bottom:7px;transition:all .15s;}
+.dropz:hover{color:var(--fg);}
+
+/* contact form (no mailto in page) */
+.cform{display:flex;flex-direction:column;gap:10px;margin:12px 0 8px;max-width:420px;}
+.cfl{display:flex;flex-direction:column;gap:4px;}
+.cfl span{font-size:7px;letter-spacing:.16em;color:var(--fg3);text-transform:uppercase;}
+.cfi,.cfa{width:100%;font-family:var(--f);font-size:9px;letter-spacing:.04em;color:var(--fg);background:rgba(0,0,0,.5);border:1px solid var(--b2);padding:8px 10px;outline:none;transition:border-color .15s;}
+.cfi:focus,.cfa:focus{border-color:var(--ac);}
+.cfa{min-height:88px;resize:vertical;line-height:1.5;}
+.cfs{font-family:var(--f);font-size:8px;letter-spacing:.18em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--b2);background:rgba(0,0,0,.5);color:var(--fg);cursor:pointer;align-self:flex-start;transition:border-color .15s,color .15s;}
+.cfs:hover{border-color:var(--ac);color:var(--ac);}
+.cffoot{font-size:8px;color:var(--fg3);letter-spacing:.1em;margin-top:6px;line-height:1.6;opacity:.85;}
+
+@media(max-width:820px){
+  #pl,#pr{display:none;}
+  #hud{grid-template-columns:1fr;}
+  #stage{grid-column:1;}
+  #modal{grid-template-columns:1fr;}
+  #mside{display:none;}
+  #mbody{padding:18px;}
+  .mgrid{grid-template-columns:1fr;}
+}
+@keyframes ab-pulse{0%,100%{border-color:var(--ac);color:var(--ac)}50%{border-color:#fff;color:#fff}}
+.eb.p.ab-pulse{animation:ab-pulse 2.5s ease-in-out 3}
+.hint-main{font-size:8px;color:var(--fg2);letter-spacing:.18em;display:block;margin-bottom:3px}
+.hint-sub{font-size:7px;letter-spacing:.14em;color:var(--fg2);opacity:.45;display:block}
+.ti.dtl{cursor:pointer}
+.ti.dtl:hover{color:var(--ac)}
+</style>
+</head>
+<body>
+
+<canvas id="dc"></canvas>
+<div id="god"><pre id="godpre"></pre></div>
+<div class="ov-dots"></div>
+<div class="ov-scan"></div>
+<div class="ov-vig"></div>
+<div id="pf"></div>
+
+<div id="dctrl">
+  <button class="db on" id="dOn">DITHER ON</button>
+  <button class="db"    id="dMode">BAYER 8x8</button>
+  <button class="db"    id="dPal">PAL: VOID</button>
+  <button class="db"    id="dPix">PX: 4</button>
+</div>
+
+<div id="hud">
+
+  <div id="top">
+    <div class="tl">VK</div>
+    <div class="tdv"></div>
+    <span class="ti lv" id="ptag">PHASE 01 // SIGNAL</span>
+    <div class="tdv"></div>
+    <div class="tk"><span class="tk-i">V · FULL-STACK · CREATIVE CODE · MUSIC · TATTOO · GLSL · DITHERING · SOLARPUNK · CYBERPUNK · THREE.JS · ABLETON · FIGMA · AI · PARIS · 2026 ···</span></div>
+    <div class="tdv"></div>
+    <span class="ti dtl" id="ditherTop">[DITHER]</span>
+    <div class="tdv"></div>
+    <div id="clk">--:--:--</div>
+  </div>
+
+  <div class="panel" id="pl">
+
+    <!-- IDENTITY -->
+    <div>
+      <div class="hl">IDENTITY</div>
+      <div class="hr"><span class="k">NODE</span><span class="v g">VK</span></div>
+      <div class="hr"><span class="k">LOC</span><span class="v">PARIS, FR</span></div>
+      <div class="hr"><span class="k">YEAR</span><span class="v g" id="yrv">2026</span></div>
+      <div class="hr"><span class="k">TZ</span><span class="v">UTC+1</span></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- STATUS — client-facing availability -->
+    <div>
+      <div class="hl">STATUS</div>
+      <div class="hr"><span class="k">COLLAB</span><span class="v g">OPEN</span></div>
+      <div class="hr"><span class="k">MUSIC</span><span class="v g">OPEN</span></div>
+      <div class="hr"><span class="k">RESPONSE</span><span class="v">&lt; 48H</span></div>
+      <div class="hr"><span class="k">AVAIL</span><span class="v g" id="availv">NOW</span></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- SIGNAL — live GitHub + real counts -->
+    <div>
+      <div class="hl">SIGNAL</div>
+      <div class="hr"><span class="k">COMMITS</span><span class="v g" id="ghcommits">—</span></div>
+      <div class="hr"><span class="k">LAST PUSH</span><span class="v" id="ghlast">—</span></div>
+      <div class="hr"><span class="k">PROJECTS</span><span class="v">6</span></div>
+      <div class="hr"><span class="k">TRACKS</span><span class="v">12+</span></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- SERVICES -->
+    <div>
+      <div class="hl">SERVICES</div>
+      <div class="hr"><span class="k">DEV</span><span class="v">FULL-STACK</span></div>
+      <div class="hr"><span class="k">AUDIO</span><span class="v">PRODUCTION</span></div>
+      <div class="hr"><span class="k">DIR</span><span class="v">CREATIVE</span></div>
+      <div class="hr"><span class="k">AI</span><span class="v">INTEGRATION</span></div>
+      <div class="hr"><span class="k">VIZ</span><span class="v">WEBGL / GLSL</span></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- LOG FEED -->
+    <div>
+      <div class="hl">EVENT LOG</div>
+      <div class="lf" id="logf" style="height:96px;overflow:hidden"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- DITHER STATE -->
+    <div>
+      <div class="hl">DITHER</div>
+      <div class="hr"><span class="k">MODE</span><span class="v" id="dmodev">BAYER 8x8</span></div>
+      <div class="hr"><span class="k">COLORS</span><span class="v" id="dcolv">2</span></div>
+      <div class="hr"><span class="k">PIXEL</span><span class="v" id="dpixv">2</span></div>
+      <div class="hr"><span class="k">PAL</span><span class="v g" id="dpalv">VOID</span></div>
+    </div>
+
+  </div>
+
+  <div id="stage">
+    <div id="hero">
+      <div class="href">2026 // VK // PARIS, FR</div>
+      <h1 class="hname">V</h1>
+      <div class="htag">
+        Full-stack <span class="s">/</span>
+        Creative Code <span class="s">/</span>
+        Music <span class="s">/</span>
+        Tattoo <span class="s">/</span>
+        GLSL
+      </div>
+      <div class="hdoc">
+        <em>The system grows.</em> Each phase a mutation.<br>
+        Code as organism. Data as scripture. Dither as skin.
+      </div>
+      <div class="ruler">
+        <span class="rn" id="pnum">01</span>
+        <div class="rl"></div>
+        <span style="font-size:8px">04</span>
+      </div>
+      <div class="btns">
+        <button class="eb p"  onclick="openM('AB')">ABOUT</button>
+        <button class="eb"    onclick="openM('PR')">PROJECTS</button>
+        <button class="eb"    onclick="openM('MU')">MUSIC</button>
+        <button class="eb ht" onclick="openM('CO')">CONTACT</button>
+      </div>
+      <p class="hland"><em>SINGLE PAGE</em> — No document scroll. Wheel or swipe <em>previews</em> sections; click a tab to keep it open.</p>
+      <div class="pips" id="pips">
+        <div class="pip on" onclick="goPhase(0)"></div>
+        <div class="pip"    onclick="goPhase(1)"></div>
+        <div class="pip"    onclick="goPhase(2)"></div>
+        <div class="pip"    onclick="goPhase(3)"></div>
+      </div>
+      <div class="hint"><span class="hint-main">↓ SCROLL OR SWIPE TO EXPLORE</span><span class="hint-sub">CLICK ANY BUTTON TO HOLD OPEN · ESC CLOSES</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="pr">
+    <div>
+      <div class="hl">STACK</div>
+      <div class="bar"><span class="bn">Three.js</span><div class="bt"><div class="bf" style="width:90%"></div></div><span class="bv">90</span></div>
+      <div class="bar"><span class="bn">Ableton</span><div class="bt"><div class="bf" style="width:88%"></div></div><span class="bv">88</span></div>
+      <div class="bar"><span class="bn">GLSL/WebGL</span><div class="bt"><div class="bf" style="width:83%"></div></div><span class="bv">83</span></div>
+      <div class="bar"><span class="bn">React/Node</span><div class="bt"><div class="bf" style="width:80%"></div></div><span class="bv">80</span></div>
+      <div class="bar"><span class="bn">Python/AI</span><div class="bt"><div class="bf" style="width:77%"></div></div><span class="bv">77</span></div>
+      <div class="bar"><span class="bn">Figma</span><div class="bt"><div class="bf" style="width:85%"></div></div><span class="bv">85</span></div>
+    </div>
+    <div class="sep"></div>
+
+    <!-- PROCESS — what clients need to know -->
+    <div>
+      <div class="hl">PROCESS</div>
+      <div class="hr"><span class="k">MODEL</span><span class="v">SPRINT / RETAINER</span></div>
+      <div class="hr"><span class="k">MIN</span><span class="v">2 WEEKS</span></div>
+      <div class="hr"><span class="k">REMOTE</span><span class="v g">YES</span></div>
+      <div class="hr"><span class="k">NDA</span><span class="v">ON REQUEST</span></div>
+    </div>
+    <div class="sep"></div>
+
+    <div>
+      <div class="hl">SYM STREAM</div>
+      <div class="sym" id="symp" style="height:58px;overflow:hidden"></div>
+    </div>
+    <div class="sep"></div>
+
+    <div>
+      <div class="hl">NODES</div>
+      <div class="hr" style="cursor:pointer" onclick="window.open('https://vorayotekaewchit.github.io/Three.js-Portfolio/','_blank')"><span class="k">WebGL Port.</span><span class="v g" style="font-size:7px">LIVE</span></div>
+      <div class="hr"><span class="k">Life OS</span><span class="v">WIP</span></div>
+      <div class="hr"><span class="k">IRK Mag.</span><span class="v">WIP</span></div>
+      <div class="hr"><span class="k">M. Amilli</span><span class="v">WIP</span></div>
+      <div class="hr" style="cursor:pointer" onclick="window.open('https://soundcloud.com','_blank')"><span class="k">SoundCloud</span><span class="v h">MUSIC</span></div>
+    </div>
+    <div class="sep"></div>
+
+    <!-- UPTIME — days since launch, auto-counts -->
+    <div>
+      <div class="hl">UPTIME</div>
+      <div class="hr"><span class="k">DAYS LIVE</span><span class="v g" id="daysv">—</span></div>
+      <div class="hr"><span class="k">LAUNCHED</span><span class="v">MAR 2026</span></div>
+      <div class="hr"><span class="k">VERSION</span><span class="v" id="phasev">01</span></div>
+    </div>
+  </div>
+
+  <div id="bot">
+    <div class="nn" onclick="openM('AB')"><span class="nk">[AB]</span>About</div>
+    <div class="nn" onclick="openM('PR')"><span class="nk">[PR]</span>Projects</div>
+    <div class="nn" onclick="openM('MU')"><span class="nk">[MU]</span>Music</div>
+    <div class="nn" onclick="openM('CO')"><span class="nk">[CO]</span>Contact</div>
+    <div class="nn" onclick="openM('WK')"><span class="nk">[WK]</span>Work</div>
+    <div class="nn" onclick="window.open('https://github.com/vorayotekaewchit','_blank')"><span class="nk">[GH]</span>GitHub</div>
+    <div class="nn" id="pbtn"><span class="nk">[+]</span>Phase</div>
+  </div>
+
+</div><!-- /hud -->
+
+<!-- SCROLL SEQUENCE INDICATOR -->
+<div id="seq">
+  <div class="sq-pip" id="sq0"></div>
+  <div class="sq-pip" id="sq1"></div>
+  <div class="sq-pip" id="sq2"></div>
+  <div class="sq-pip" id="sq3"></div>
+  <div class="sq-pip" id="sq4"></div>
+  <span id="seq-label">AB</span>
+  <span id="seq-auto"></span>
+</div>
+
+<!-- AUTO-CLOSE COUNTDOWN BAR inside modal -->
+<div id="modal">
+  <div id="abar" class="hidden"></div>
+  <div id="mside">
+    <div id="mref">REF // 00</div>
+    <div id="mtitle">SECTION</div>
+    <div id="msub">VK 2026</div>
+    <div class="sep" style="margin:9px 0"></div>
+    <div id="mnav"></div>
+    <div class="msys">
+      SYS: MARATHON OS<br>
+      <span class="ac">UPTIME: INFINITE</span><br>
+      PHASE: <span id="mphase" class="ac">01</span><br>
+      YEAR: 2026
+    </div>
+    <button class="mcl" onclick="closeM()">[ESC] CLOSE</button>
+  </div>
+  <div id="mbody"></div>
+</div>
+
+<script>
+/* ══════════════════════
+   CANVAS 2D DITHER
+   Bayer ordered dithering + color quantization
+   Based on Maxime Heckel's technique
+   Runs at low-res, CSS scales up — fast
+══════════════════════ */
+const dc  = document.getElementById('dc');
+const ctx = dc.getContext('2d');
+
+// Bayer 8x8 / 64
+const B8 = [
+   0,32, 8,40, 2,34,10,42,
+  48,16,56,24,50,18,58,26,
+  12,44, 4,36,14,46, 6,38,
+  60,28,52,20,62,30,54,22,
+   3,35,11,43, 1,33, 9,41,
+  51,19,59,27,49,17,57,25,
+  15,47, 7,39,13,45, 5,37,
+  63,31,55,23,61,29,53,21
+].map(v => v/64);
+
+// Bayer 4x4 / 16
+const B4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v=>v/16);
+// Bayer 2x2
+const B2 = [0,.75,1,.25];
+
+const PALS = {
+  VOID:  {fg:[232,226,214], bg:[0,0,0]},
+  SOLAR: {fg:[200,255,110], bg:[0,0,0]},
+  AMBER: {fg:[255,184,0],   bg:[4,2,0]},
+  BLUE:  {fg:[77,200,255],  bg:[0,0,10]},
+};
+let palKey  = 'VOID';
+let ditherOn = true;
+let dMode    = 0; // 0=B8 1=B4 2=B2 3=noise
+let pixSz    = 4;
+let colNum   = 2;
+let noiseT   = 0;
+const MLBLS  = ['BAYER 8x8','BAYER 4x4','BAYER 2x2','NOISE'];
+
+// Precompute a noise field once per render tick
+function genNoise(W, H) {
+  const f = new Float32Array(W * H);
+  const t = noiseT;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const nx = x/W, ny = y/H;
+      f[y*W+x] = Math.max(0, Math.min(1,
+        Math.sin(nx*6.1 + t*.35) * Math.cos(ny*5.0 - t*.28) * .24 +
+        Math.sin(nx*13  - t*.6)  * Math.sin(ny*10  + t*.45) * .19 +
+        Math.cos(nx*2.8 + ny*6.5 + t*.12) * .3 +
+        .5
+      ));
+    }
+  }
+  return f;
+}
+
+function drawDither() {
+  if (!ditherOn) { ctx.clearRect(0,0,dc.width,dc.height); return; }
+  const W = Math.ceil(innerWidth/pixSz);
+  const H = Math.ceil(innerHeight/pixSz);
+  if (dc.width !== W || dc.height !== H) { dc.width = W; dc.height = H; }
+  dc.style.width  = innerWidth+'px';
+  dc.style.height = innerHeight+'px';
+
+  const noise = genNoise(W, H);
+  const pal   = PALS[palKey];
+  const img   = ctx.createImageData(W, H);
+  const d     = img.data;
+  const fgR=pal.fg[0],fgG=pal.fg[1],fgB=pal.fg[2];
+  const bgR=pal.bg[0],bgG=pal.bg[1],bgB=pal.bg[2];
+
+  for (let y = 0; y < H; y++) {
+    const py = y % 8;
+    for (let x = 0; x < W; x++) {
+      const px = x % 8;
+      let thr;
+      if      (dMode === 0) thr = B8[py*8+px];
+      else if (dMode === 1) thr = B4[(y%4)*4+(x%4)];
+      else if (dMode === 2) thr = B2[(y%2)*2+(x%2)];
+      else                  thr = (Math.sin(x*127.1+y*311.7)*43758.5453)%1;
+
+      // Maxime Heckel: floor(v*(n-1)+.5)/(n-1)
+      const v = Math.max(0, Math.min(1, noise[y*W+x] + thr*.2 - .1));
+      const q = Math.floor(v*(colNum-1)+.5)/(colNum-1);
+      const i = (y*W+x)*4;
+      d[i]   = bgR + (fgR-bgR)*q;
+      d[i+1] = bgG + (fgG-bgG)*q;
+      d[i+2] = bgB + (fgB-bgB)*q;
+      d[i+3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// Tick every 0.30s
+let ditherTick;
+function startDither() {
+  clearInterval(ditherTick);
+  drawDither();
+  ditherTick = setInterval(() => { noiseT += .1; drawDither(); }, 250);
+}
+startDither();
+window.addEventListener('resize', drawDither);
+
+/* ══════════════════════
+   SCROLL-DRIVEN SECTION NAVIGATION
+   ─ Scroll down  → cycle AB→PR→MU→CO→WK
+   ─ Scroll up    → reverse WK→CO→MU→PR→AB
+   ─ Idle         → auto-close (scroll preview mode only); duration = AUTO_CLOSE_MS
+   ─ Wheel / move / scroll in modal → idle timer resets
+   ─ Manual click → stays open, no auto-close
+   ─ ESC / close  → always closes
+══════════════════════ */
+const AUTO_CLOSE_MS = 3500;
+const SCROLL_LOCK_MS = 300;
+const SEQ    = ['AB','PR','MU','CO','WK'];
+let seqIdx   = -1;        // -1 = no section open via scroll
+let manualOpen = false;   // true = opened by click, skip auto-close
+let autoTimer  = null;
+let scrollLock = false;   // debounce rapid scroll events
+let touchStartY = 0;
+let idleMoveLast = 0;
+
+// Indicator pips + label
+function updateSeqUI(idx) {
+  SEQ.forEach((_,i) => {
+    const pip = document.getElementById('sq'+i);
+    if (!pip) return;
+    pip.classList.toggle('on',   i === idx);
+    pip.classList.toggle('done', i < idx);
+    pip.classList.remove('on');
+    if (i === idx)   pip.classList.add('on');
+    else if (i < idx) pip.classList.add('done');
+    else { pip.classList.remove('on','done'); }
+  });
+  const lbl = document.getElementById('seq-label');
+  if (lbl) lbl.textContent = idx >= 0 ? SEQ[idx] : '';
+}
+
+function showSeq(visible) {
+  document.getElementById('seq').classList.toggle('vis', visible);
+}
+
+// Countdown bar — duration matches AUTO_CLOSE_MS
+function startCountdown() {
+  const bar = document.getElementById('abar');
+  if (!bar) return;
+  bar.style.transitionDuration = AUTO_CLOSE_MS + 'ms';
+  bar.classList.remove('hidden','run');
+  void bar.offsetWidth;
+  bar.classList.add('run');
+}
+function stopCountdown() {
+  const bar = document.getElementById('abar');
+  if (!bar) return;
+  bar.classList.remove('run');
+  bar.classList.add('hidden');
+}
+
+// Clear any pending auto-close
+function clearAutoClose() {
+  clearTimeout(autoTimer);
+  autoTimer = null;
+  stopCountdown();
+  document.getElementById('seq-auto').textContent = '';
+}
+
+// Schedule auto-close after idle (scroll preview mode only)
+function scheduleAutoClose() {
+  clearAutoClose();
+  if (manualOpen) return;
+  startCountdown();
+  const sec = (AUTO_CLOSE_MS / 1000).toFixed(1).replace(/\.0$/, '');
+  document.getElementById('seq-auto').textContent = 'PREVIEW · ' + sec + 's';
+  autoTimer = setTimeout(() => {
+    closeM();
+    showSeq(false);
+    seqIdx = -1;
+    document.getElementById('seq-auto').textContent = '';
+  }, AUTO_CLOSE_MS);
+}
+
+function maybeRefreshIdle(e) {
+  const m = document.getElementById('modal');
+  if (!m.classList.contains('open') || manualOpen || !m.classList.contains('scroll-mode')) return;
+  if (e.type === 'pointermove' || e.type === 'touchmove') {
+    const n = Date.now();
+    if (n - idleMoveLast < 100) return;
+    idleMoveLast = n;
+  }
+  scheduleAutoClose();
+}
+
+// Core scroll handler — direction drives index
+function handleScrollNav(dir) {
+  // dir: +1 = down (next), -1 = up (prev)
+  const wasOpen = document.getElementById('modal').classList.contains('open');
+
+  if (!wasOpen && dir > 0) {
+    // First scroll down — open first section
+    seqIdx = 0;
+  } else if (!wasOpen && dir < 0) {
+    // Scroll up from closed — do nothing
+    return;
+  } else if (wasOpen && !manualOpen) {
+    // Already in scroll mode — advance/retreat
+    const next = seqIdx + dir;
+    if (next < 0) {
+      // Scrolled above first — close
+      closeM();
+      showSeq(false);
+      seqIdx = -1;
+      return;
+    }
+    if (next >= SEQ.length) {
+      // Scrolled past last — close
+      closeM();
+      showSeq(false);
+      seqIdx = -1;
+      return;
+    }
+    seqIdx = next;
+  } else if (wasOpen && manualOpen) {
+    // Manual mode — scroll adjusts dither pixel size instead
+    pixSz = Math.max(1, Math.min(10, pixSz + dir));
+    drawDither();
+    document.getElementById('dPix').textContent  = 'PX: '+pixSz;
+    document.getElementById('dpixv').textContent = pixSz;
+    return;
+  }
+
+  manualOpen = false;
+  document.getElementById('modal').classList.add('scroll-mode');
+  openMInternal(SEQ[seqIdx]);
+  updateSeqUI(seqIdx);
+  showSeq(true);
+  scheduleAutoClose();
+}
+
+// Wheel — throttled to avoid firing 20x per scroll gesture
+window.addEventListener('wheel', e => {
+  e.preventDefault();
+
+  // If modal is open in manual mode, wheel adjusts pixel size
+  const isOpen = document.getElementById('modal').classList.contains('open');
+  if (isOpen && manualOpen) {
+    pixSz = Math.max(1, Math.min(10, pixSz + (e.deltaY > 0 ? 1 : -1)));
+    drawDither();
+    document.getElementById('dPix').textContent  = 'PX: '+pixSz;
+    document.getElementById('dpixv').textContent = pixSz;
+    return;
+  }
+
+  if (scrollLock) {
+    // Still in scroll mode — reset the auto-close timer on every tick
+    if (!manualOpen) scheduleAutoClose();
+    return;
+  }
+  scrollLock = true;
+  setTimeout(() => { scrollLock = false; }, SCROLL_LOCK_MS);
+
+  const dir = e.deltaY > 0 ? 1 : -1;
+  handleScrollNav(dir);
+}, { passive: false });
+
+window.addEventListener('pointermove', maybeRefreshIdle, { passive: true });
+window.addEventListener('touchmove', maybeRefreshIdle, { passive: true });
+document.getElementById('modal').addEventListener('scroll', maybeRefreshIdle, true);
+
+// Touch swipe
+window.addEventListener('touchstart', e => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchend', e => {
+  const delta = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(delta) < 30) return; // ignore tiny taps
+  handleScrollNav(delta > 0 ? 1 : -1);
+}, { passive: true });
+
+/* ── dither controls ── */
+document.getElementById('dOn').addEventListener('click', function(){
+  ditherOn = !ditherOn;
+  this.textContent = ditherOn ? 'DITHER ON' : 'DITHER OFF';
+  this.classList.toggle('on', ditherOn);
+  drawDither();
+});
+document.getElementById('dMode').addEventListener('click', function(){
+  dMode = (dMode+1)%4;
+  this.textContent = MLBLS[dMode];
+  document.getElementById('dmodev').textContent = MLBLS[dMode];
+  drawDither();
+});
+document.getElementById('dPal').addEventListener('click', function(){
+  const keys = Object.keys(PALS);
+  palKey = keys[(keys.indexOf(palKey)+1)%keys.length];
+  this.textContent = 'PAL: '+palKey;
+  document.getElementById('dpalv').textContent = palKey;
+  drawDither();
+});
+document.getElementById('dPix').addEventListener('click', function(){
+  const steps = [1,2,3,4,6,8];
+  pixSz = steps[(steps.indexOf(pixSz)+1)%steps.length];
+  this.textContent = 'PX: '+pixSz;
+  document.getElementById('dpixv').textContent = pixSz;
+  drawDither();
+});
+
+/* ══════════════════════
+   PHASES
+══════════════════════ */
+const PHASES = [
+  {id:'01',name:'SIGNAL', colNum:2,px:4,mode:0,pal:'VOID', ac:'#c8ff6e',a2:'200,255,110',hot:'#ff4d1c',godOp:.065},
+  {id:'02',name:'ENTROPY',colNum:4,px:4,mode:0,pal:'SOLAR',ac:'#c8ff6e',a2:'200,255,110',hot:'#ff9000',godOp:.06},
+  {id:'03',name:'ORGANIC',colNum:6,px:4,mode:1,pal:'AMBER',ac:'#ffb800',a2:'255,184,0',  hot:'#ff4d1c',godOp:.05},
+  {id:'04',name:'ENTITY', colNum:8,px:4,mode:0,pal:'BLUE', ac:'#4dc8ff',a2:'77,200,255', hot:'#c864ff',godOp:.13},
+];
+let phIdx = 0;
+
+function applyPhase(p, flash=true) {
+  if (flash) {
+    const pf = document.getElementById('pf');
+    pf.classList.remove('fire'); void pf.offsetWidth; pf.classList.add('fire');
+  }
+  colNum = p.colNum; dMode = p.mode; pixSz = p.px; palKey = p.pal;
+  drawDither();
+  const r = document.documentElement;
+  r.style.setProperty('--ac', p.ac);
+  r.style.setProperty('--a2', `rgba(${p.a2},.08)`);
+  r.style.setProperty('--hot', p.hot);
+  document.getElementById('ptag').textContent    = `PHASE ${p.id} // ${p.name}`;
+  document.getElementById('pnum').textContent    = p.id;
+  document.getElementById('yrv').textContent     = '2026';
+  document.getElementById('dmodev').textContent  = MLBLS[p.mode];
+  document.getElementById('dcolv').textContent   = p.colNum;
+  document.getElementById('dpixv').textContent   = p.px;
+  document.getElementById('dpalv').textContent   = p.pal;
+  document.getElementById('dMode').textContent   = MLBLS[p.mode];
+  document.getElementById('dPal').textContent    = 'PAL: '+p.pal;
+  document.getElementById('dPix').textContent    = 'PX: '+p.px;
+  document.getElementById('god').style.opacity   = p.godOp;
+  const pv = document.getElementById('phasev'); if(pv) pv.textContent = p.id;
+  const mp = document.getElementById('mphase'); if(mp) mp.textContent = p.id;
+  document.querySelectorAll('.pip').forEach((pp,i)=>pp.classList.toggle('on',i===phIdx));
+}
+
+document.getElementById('pbtn').addEventListener('click',()=>{ phIdx=(phIdx+1)%4; applyPhase(PHASES[phIdx]); });
+window.goPhase = i => { phIdx=i; applyPhase(PHASES[i]); };
+setInterval(()=>{ phIdx=(phIdx+1)%4; applyPhase(PHASES[phIdx]); }, 180000);
+applyPhase(PHASES[0], false);
+
+/* ══════════════════════
+   CLOCK
+══════════════════════ */
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');
+}
+setInterval(tick,1000); tick();
+
+/* ══════════════════════
+   UPTIME COUNTER
+   Days since launch — auto-increments
+══════════════════════ */
+(function(){
+  const launch = new Date('2026-03-18');
+  const days   = Math.floor((Date.now() - launch) / 86400000);
+  const el     = document.getElementById('daysv');
+  if (el) el.textContent = days >= 0 ? days : 0;
+})();
+
+/* ══════════════════════
+   GITHUB LIVE DATA
+   Fetches real commit count + last push
+   from linked GitHub account public repos
+══════════════════════ */
+async function fetchGitHub() {
+  try {
+    const res  = await fetch('https://api.github.com/users/vorayotekaewchit/repos?per_page=100&sort=pushed');
+    if (!res.ok) return;
+    const repos = await res.json();
+    if (!Array.isArray(repos)) return;
+
+    // Last push date from most recently pushed repo
+    const lastPush = repos[0]?.pushed_at;
+    if (lastPush) {
+      const d = new Date(lastPush);
+      const label = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}).toUpperCase();
+      document.getElementById('ghlast').textContent = label;
+    }
+
+    // Total commit count across all repos (uses repo count proxy)
+    const repoCount = repos.length;
+    document.getElementById('ghcommits').textContent = repoCount + ' REPOS';
+
+    // Fetch commit count for the most active repo
+    if (repos[0]?.full_name) {
+      const cRes = await fetch(`https://api.github.com/repos/${repos[0].full_name}/commits?per_page=1`);
+      const link = cRes.headers.get('Link') || '';
+      const match = link.match(/page=(\d+)>; rel="last"/);
+      if (match) {
+        document.getElementById('ghcommits').textContent = match[1] + '+';
+      }
+    }
+  } catch(e) {
+    // Fail silently — keep placeholder dashes
+  }
+}
+fetchGitHub();
+
+/* ══════════════════════
+   LOG FEED
+══════════════════════ */
+const LOGS=[
+  {c:'a',t:'! CRITICAL PH VALUE 4.1'},{c:'',t:'[] MULCH PLACEMENT BORDER'},
+  {c:'e',t:'[ER] SIGNAL DROPOUT CH3'},{c:'',t:'2/78 COMBINE ACTIVE'},
+  {c:'s',t:'[OK] DITHER ENGINE READY'},{c:'e',t:'[ER] MULCH RIP 4 FAULT'},
+  {c:'',t:'_ CROP LINE 91 SCAN'},{c:'a',t:'! MOISTURE 61%'},
+  {c:'s',t:'[OK] PHASE LOCK ACQUIRED'},{c:'',t:'_ ENTITY 0001 NODE'},
+  {c:'',t:'[] BAYER 8x8 LOADED'},{c:'s',t:'[OK] VK SIGNAL STRONG'},
+  {c:'a',t:'! PHASE SHIFT DETECTED'},{c:'',t:'_ CANVAS 2D ACTIVE'},
+  {c:'s',t:'[OK] ASCII FORM RENDERED'},{c:'e',t:'[ER] TEXTURE OVERFLOW'},
+];
+let logI=0;
+const logEl=document.getElementById('logf');
+function addLog(){
+  const e=LOGS[logI++%LOGS.length];
+  const d=document.createElement('div');d.className=`ll ${e.c}`;
+  const ic=document.createElement('span');ic.className='li';
+  d.appendChild(ic);d.appendChild(document.createTextNode(e.t));
+  logEl.appendChild(d);
+  while(logEl.children.length>11)logEl.removeChild(logEl.firstChild);
+}
+setInterval(addLog,1000); addLog();
+
+/* ══════════════════════
+   SYM STREAM
+══════════════════════ */
+const SYMS='Ł Ø ø þ Ð :) (o_o) ^^ ## -/-/-- F :); ∑ ∂ ■ ▓ ↑ ∞ ≈ · ·-· #'.split(' ');
+const symp=document.getElementById('symp');
+setInterval(()=>{symp.textContent=Array.from({length:55},()=>SYMS[Math.floor(Math.random()*SYMS.length)]).join(' ');},2500);
+symp.textContent=Array.from({length:55},()=>SYMS[Math.floor(Math.random()*SYMS.length)]).join(' ');
+
+/* ══════════════════════
+   ASCII GOD — generated once
+══════════════════════ */
+(function(){
+  const W=95,H=48;
+  const D='█▓▒░■●',M='▒░○□Łøþ',L=['.','·',':'];
+  let out='';
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const nx=(x/W)*2-1,ny=(y/H)*2-1;
+      const head=Math.sqrt((nx*.7)**2+(ny*.82)**2);
+      const e1=Math.sqrt(((nx+.33)/.14)**2+((ny-.22)/.11)**2);
+      const e2=Math.sqrt(((nx-.33)/.14)**2+((ny-.22)/.11)**2);
+      const mouth=Math.abs(ny-.52-nx*nx*.5+.18);
+      const noise=(Math.sin(x*.27+y*.18)*Math.cos(x*.12-y*.36))*.5+.5;
+      let dens=0;
+      if(head<.88)dens=1-head*.95;
+      if(e1<1.1||e2<1.1)dens=.9;
+      if(mouth<.07&&Math.abs(nx)<.44)dens=.8;
+      dens=dens*.72+noise*.28;
+      if(dens<.1)out+=' ';
+      else if(dens<.24)out+=L[Math.floor(Math.random()*L.length)];
+      else if(dens<.52)out+=M[Math.floor(dens*M.length)%M.length];
+      else out+=D[Math.floor(dens*D.length)%D.length];
+    }
+    out+='\n';
+  }
+  document.getElementById('godpre').textContent=out;
+})();
+
+/* ══════════════════════
+   SECTIONS
+══════════════════════ */
+/* Formspree (or compatible POST URL). Set your /f/xxx id — email is not stored in this file. */
+const CONTACT_FORM_ACTION = 'https://formspree.io/f/YOUR_FORMSPREE_ID';
+
+const S={
+  AB:{title:'ABOUT',sub:'IDENTITY',ref:'01',nav:['Identity','Stack','Languages'],html:`
+    <h2 class="mh1">V</h2>
+    <p class="mbt"><strong>Fashion background, then full-stack development.</strong> Now working across AI, music, and creative code. Paris-based.</p>
+    <p class="mbt">Building at the intersection of code, sound, and visuals — from runway to runtime. The aesthetic sensibility is <em>the throughline</em>.</p>
+    <div class="docblock" data-r="DOCTRINE 01"><div class="doctxt">"The interface is the organism. The data is the skin. The dithering is the breath between states."</div></div>
+    <div class="mdiv"></div>
+    <div class="mh2">Stack</div>
+    <div class="msbar"><span class="msn">Three.js / WebGL</span><div class="mst"><div class="msf" style="width:90%"></div></div><span class="msp">90</span></div>
+    <div class="msbar"><span class="msn">Ableton Live</span><div class="mst"><div class="msf" style="width:88%"></div></div><span class="msp">88</span></div>
+    <div class="msbar"><span class="msn">GLSL Shaders</span><div class="mst"><div class="msf" style="width:83%"></div></div><span class="msp">83</span></div>
+    <div class="msbar"><span class="msn">React / Node</span><div class="mst"><div class="msf" style="width:80%"></div></div><span class="msp">80</span></div>
+    <div class="msbar"><span class="msn">Python / AI APIs</span><div class="mst"><div class="msf" style="width:77%"></div></div><span class="msp">77</span></div>
+    <div class="msbar"><span class="msn">Figma / Design</span><div class="mst"><div class="msf" style="width:85%"></div></div><span class="msp">85</span></div>
+    <div class="mdiv"></div>
+    <div class="mh2">Languages</div>
+    <div class="mlrow"><span>French</span><div class="mldots"><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div></div></div>
+    <div class="mlrow"><span>English</span><div class="mldots"><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld"></div></div></div>
+    <div class="mlrow"><span>Thai</span><div class="mldots"><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div><div class="mld on"></div></div></div>
+    <div class="mdiv"></div>
+    <div class="mterm">
+      <div class="mtl"><span class="mtp">$</span>whoami</div>
+      <div class="mtl mto">V — designer/dev/musician</div>
+      <div class="mtl"><span class="mtp">$</span>cat /etc/identity</div>
+      <div class="mtl mto">fashion → code → music → ai → infinite</div>
+      <div class="mtl"><span class="mtp">$</span><span class="mcur">▓</span></div>
+    </div>
+  `},
+  MU:{title:'MUSIC',sub:'SOUND TRANSMISSIONS',ref:'02',nav:['Playlist','Commission'],html:`
+    <h2 class="mh1">MUSIC<br><span style="opacity:.2;font-weight:300">LIBRARY</span></h2>
+    <p class="mbt">Original productions — ambient, electronic, experimental. <em>The dithered sound of 2026.</em></p>
+    <div class="dropz" id="dropz" onclick="document.getElementById('audin').click()">
+      <input type="file" id="audin" accept="audio/*" style="display:none">[ Drop audio · click to load ]
+    </div>
+    <div class="mlbl">LUNE ALBUM / (1)</div>
+    <ul style="list-style:none;margin-bottom:10px" id="plist"></ul>
+    <div id="nowt" style="font-size:10px;color:var(--fg);margin-bottom:2px">No track loaded</div>
+    <div id="nows" style="font-size:8px;color:var(--fg3);margin-bottom:7px">Drop audio or select track</div>
+    <div class="pprog" id="pprog"><div class="pfill" id="pfill"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--fg3);margin-bottom:7px"><span id="tc">0:00</span><span id="td">0:00</span></div>
+    <div class="pctrls">
+      <button class="pb" id="pprev">PREV</button>
+      <button class="pb" id="pplay">PLAY</button>
+      <button class="pb" id="ppause">PAUSE</button>
+      <button class="pb" id="pnext">NEXT</button>
+      <span style="font-size:7px;color:var(--fg3);margin-left:3px">VOL</span>
+      <input type="range" id="volr" min="0" max="1" step="0.01" value="0.8" style="width:50px;cursor:pointer">
+    </div>
+    <div class="mdiv"></div>
+    <div class="mh2">Commission</div>
+    <p class="mbt">Custom music for <em>film</em>, <em>games</em>, <em>interactive</em>, <em>brand</em>. Ambient · Electronic · Experimental · Cinematic.</p>
+    <div class="docblock" data-r="SIGNAL 02"><div class="doctxt">"Sound is data with intention. Silence is the dither between notes."</div></div>`
+  },
+  PR:{title:'PROJECTS',sub:'SELECTED NODES',ref:'03',nav:['Works','Notes'],html:`
+    <h2 class="mh1">SELECTED<br><span style="opacity:.2;font-weight:300">PIECES</span></h2>
+    <p class="mbt">Every project is a phase in the evolution. Best-of from the library.</p>
+    <div class="mdiv"></div>
+    <div class="mgrid">
+      <div class="mc"><div class="mct">Life OS</div><div class="mcs">Personal operating system. Productivity, tracking, creative flow. AI-augmented.</div><div class="mpills"><span class="mp">Systems</span><span class="mp">AI</span></div></div>
+      <div class="mc"><div class="mct">WebGL Portfolio</div><div class="mcs">Three.js portfolio. eDEX-UI terminal + dithering post-process.</div><div class="mpills"><span class="mp">Three.js</span><span class="mp">GLSL</span></div><div style="margin-top:6px"><a class="mlink" href="https://vorayotekaewchit.github.io/Three.js-Portfolio/" target="_blank">Live</a></div></div>
+      <div class="mc"><div class="mct">Music Production</div><div class="mcs">Ambient, electronic, experimental. Lune Album. Commissions open.</div><div class="mpills"><span class="mp">Ableton</span></div></div>
+      <div class="mc"><div class="mct">Tattoo Design</div><div class="mcs">Custom flash and bespoke. Fine-line, geometric, organic.</div><div class="mpills"><span class="mp">Design</span><span class="mp">Art</span></div></div>
+      <div class="mc"><div class="mct">Maison Amilli</div><div class="mcs">Fashion house digital presence. Creative direction + full-stack.</div><div class="mpills"><span class="mp">Fashion</span><span class="mp">Web</span></div></div>
+      <div class="mc"><div class="mct">IRK Magazine</div><div class="mcs">Digital editorial platform. Design, development, content strategy.</div><div class="mpills"><span class="mp">Editorial</span><span class="mp">React</span></div></div>
+    </div>
+    <div class="docblock" data-r="TECHNIQUE"><div class="doctxt">This site uses Canvas 2D with Bayer 8x8 ordered dithering. No WebGL — fast, minimal, runs on anything.</div></div>`
+  },
+  CO:{title:'CONTACT',sub:'OPEN CHANNEL',ref:'04',nav:['Form','Location'],html:`
+    <h2 class="mh1">CONTACT<br><span style="opacity:.2;font-weight:300">TRANSMIT</span></h2>
+    <p class="mbt">Available for <em>freelance</em>, <em>commissions</em>, and creative partnership. Paris-based, remote-friendly.</p>
+    <div class="mdiv"></div>
+    <div class="mlbl">MESSAGE (NO EMAIL IN PAGE SOURCE)</div>
+    <form class="cform" action="${CONTACT_FORM_ACTION}" method="POST">
+      <input type="hidden" name="_subject" value="VK site — contact" />
+      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-hidden="true" />
+      <label class="cfl"><span>Name</span><input class="cfi" type="text" name="name" required autocomplete="name" maxlength="200" /></label>
+      <label class="cfl"><span>Your email</span><input class="cfi" type="email" name="email" required autocomplete="email" maxlength="320" /></label>
+      <label class="cfl"><span>Message</span><textarea class="cfa" name="message" required rows="5" maxlength="8000"></textarea></label>
+      <button class="cfs" type="submit">Send</button>
+    </form>
+    <p class="cffoot">Uses a secure form relay (e.g. Formspree) — your address is not exposed here, which reduces scrape spam.</p>
+    <div class="mdiv"></div>
+    <div class="mrow"><span class="ml">SOUNDCLOUD</span><a class="mlink" href="https://soundcloud.com" target="_blank" rel="noopener noreferrer">VK Music</a></div>
+    <div class="mdiv"></div>
+    <div class="mterm">
+      <div class="mtl"><span class="mtp">$</span>ping vk --locate</div>
+      <div class="mtl mto">Paris, France · UTC+1 · 2026</div>
+      <div class="mtl"><span class="mtp">$</span>availability --check</div>
+      <div class="mtl mto g">AVAILABLE FOR PROJECTS [OK]</div>
+      <div class="mtl"><span class="mtp">$</span>music --commissions</div>
+      <div class="mtl mto g">COMMISSIONS OPEN [OK]</div>
+      <div class="mtl"><span class="mtp">$</span><span class="mcur">▓</span></div>
+    </div>`
+  },
+  WK:{title:'WORK',sub:'COLLABORATION',ref:'05',nav:['Services','Philosophy'],html:`
+    <h2 class="mh1">WORK<br><span style="opacity:.2;font-weight:300">WITH ME</span></h2>
+    <p class="mbt">Freelance, contract, long-term creative partnership.</p>
+    <div class="mdiv"></div>
+    <div class="mc" style="margin-bottom:8px"><div class="mct">Creative Development</div><div class="mcs">WebGL, Three.js, GLSL shaders, generative art. Full-stack with strong aesthetic precision.</div><div class="mpills"><span class="mp">Three.js</span><span class="mp">GLSL</span><span class="mp">React</span><span class="mp">Node</span></div></div>
+    <div class="mc" style="margin-bottom:8px"><div class="mct">Music Production</div><div class="mcs">Original scoring, sound design, ambient/electronic. Commissions for film, games, interactive, brand.</div><div class="mpills"><span class="mp">Ableton</span><span class="mp">Cinematic</span></div></div>
+    <div class="mc" style="margin-bottom:8px"><div class="mct">Creative Direction</div><div class="mcs">Fashion-to-digital. Visual identity, art direction, editorial design.</div><div class="mpills"><span class="mp">Identity</span><span class="mp">Fashion</span></div></div>
+    <div class="mc"><div class="mct">AI Integration</div><div class="mcs">LLM APIs, prompt engineering, AI-assisted creative workflows, generative pipelines.</div><div class="mpills"><span class="mp">Claude</span><span class="mp">LLM APIs</span></div></div>
+    <div class="mdiv"></div>
+    <div class="docblock" data-r="PHILOSOPHY"><div class="doctxt">Solarpunk is the <em>why</em>. Cyberpunk is the <em>material</em>. Swiss design is the <em>structure</em>. The dither is the <em>metaphor</em> — the continuous approximated from the discrete.</div></div>`
+  }
+};
+
+/* ══════════════════════
+   MODAL OPEN / CLOSE
+══════════════════════ */
+
+// Internal open — used by both scroll and manual paths
+function openMInternal(id) {
+  const s = S[id]; if (!s) return;
+  document.getElementById('mref').textContent   = `REF // ${s.ref} · 2026`;
+  document.getElementById('mtitle').textContent = s.title;
+  document.getElementById('msub').textContent   = s.sub;
+  document.getElementById('mbody').innerHTML    = s.html;
+  document.getElementById('mnav').innerHTML     = s.nav.map(n=>`<div class="mni"><span class="arr">—</span>${n}</div>`).join('');
+  document.getElementById('modal').classList.add('open');
+  document.querySelectorAll('.nn').forEach(b => b.classList.toggle('on', b.textContent.includes(`[${id}]`)));
+  if (id === 'MU') initPlayer();
+}
+
+// Manual open — click from buttons / nav bar
+// Sets manualOpen flag → disables auto-close
+function openM(id) {
+  manualOpen = true;
+  clearAutoClose();
+  seqIdx = SEQ.indexOf(id);
+  document.getElementById('modal').classList.remove('scroll-mode');
+  stopCountdown();
+  openMInternal(id);
+  updateSeqUI(seqIdx);
+  showSeq(true);
+}
+
+function closeM() {
+  manualOpen = false;
+  clearAutoClose();
+  document.getElementById('modal').classList.remove('open','scroll-mode');
+  document.querySelectorAll('.nn').forEach(b => b.classList.remove('on'));
+  showSeq(false);
+  updateSeqUI(-1);
+  seqIdx = -1;
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeM(); });
+
+
+/* ══════════════════════
+   MUSIC PLAYER
+══════════════════════ */
+let aud=null,playing=false;
+let tracks=[];
+let tracksStatus='idle'; // idle | loading | ready | error
+let curT=0;
+const fmt=s=>!isFinite(s)?'0:00':Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+
+function renderPlaylist(){
+  const ul=document.getElementById('plist');
+  if(!ul) return;
+
+  if(!tracks?.length){
+    ul.innerHTML = tracksStatus === 'error'
+      ? `<li style="opacity:.6;color:var(--fg3);padding:4px 0">[ NO TRACKS LOADED ]</li>`
+      : '';
+    return;
+  }
+
+  ul.innerHTML = tracks.map((t,i)=>`
+    <li class="ptk ${i===0?'on':''}" data-idx="${i}">
+      <span class="pnum">${String(i+1).padStart(2,'0')}</span>${esc(t.title)}
+    </li>
+  `).join('');
+
+  curT = 0;
+  loadT(0);
+}
+
+async function loadTracks(){
+  tracksStatus='loading';
+  try{
+    const res = await fetch('/audio/tracks.json');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const arr  = Array.isArray(data) ? data : data?.tracks;
+    if(!Array.isArray(arr)) throw new Error('Bad tracks.json shape');
+    tracks = arr.map(t => ({
+      title: t?.title ?? '',
+      album: t?.album ?? '',
+      year:  t?.year ?? '',
+      src:   t?.src ?? '',
+    }));
+    tracksStatus='ready';
+  }catch(e){
+    tracks=[];
+    tracksStatus='error';
+  }
+  renderPlaylist();
+}
+
+loadTracks();
+
+function initPlayer(){
+  if(!aud){
+    aud=new Audio();aud.volume=.8;
+    aud.addEventListener('timeupdate',()=>{
+      const pct=aud.duration?aud.currentTime/aud.duration*100:0;
+      const pf=document.getElementById('pfill'),tc=document.getElementById('tc'),td=document.getElementById('td');
+      if(pf)pf.style.width=pct+'%';
+      if(tc)tc.textContent=fmt(aud.currentTime);
+      if(td)td.textContent=fmt(aud.duration);
+    });
+    aud.addEventListener('ended',()=>{if(curT<tracks.length-1){curT++;loadT(curT);aud.play();}});
+  }
+  const g=id=>document.getElementById(id);
+  g('pplay')?.addEventListener('click',()=>{if(aud.src&&aud.src!==location.href){aud.play();playing=true;g('pplay').classList.add('on');}});
+  g('ppause')?.addEventListener('click',()=>{aud.pause();playing=false;g('pplay')?.classList.remove('on');});
+  g('pprev')?.addEventListener('click',()=>{if(curT>0){curT--;loadT(curT);if(playing)aud.play();}});
+  g('pnext')?.addEventListener('click',()=>{if(curT<tracks.length-1){curT++;loadT(curT);if(playing)aud.play();}});
+  g('volr')?.addEventListener('input',e=>{if(aud)aud.volume=e.target.value;});
+  g('pprog')?.addEventListener('click',e=>{
+    if(!aud?.duration)return;
+    const r=e.currentTarget.getBoundingClientRect();
+    aud.currentTime=((e.clientX-r.left)/r.width)*aud.duration;
+  });
+  g('audin')?.addEventListener('change',e=>loadFile(e.target.files[0]));
+  g('dropz')?.addEventListener('dragover',e=>e.preventDefault());
+  g('dropz')?.addEventListener('drop',e=>{e.preventDefault();loadFile(e.dataTransfer.files[0]);});
+  g('plist')?.addEventListener('click',e=>{
+    const li=e.target.closest('.ptk');if(!li)return;
+    curT=[...document.querySelectorAll('.ptk')].indexOf(li);
+    loadT(curT);aud.play();playing=true;
+  });
+
+  // If tracks already loaded, render + auto-select first one.
+  renderPlaylist();
+}
+function loadFile(f){
+  if(!f||!f.type.startsWith('audio/'))return;
+  tracks[0]={title:f.name.replace(/\.[^.]+$/,''),album:'User Library',src:URL.createObjectURL(f)};
+  loadT(0);aud.play();playing=true;document.getElementById('pplay')?.classList.add('on');
+}
+function loadT(i){
+  if(!tracks[i]?.src)return;
+  aud.src=tracks[i].src;
+  const nt=document.getElementById('nowt'),ns=document.getElementById('nows');
+  if(nt)nt.textContent=tracks[i].title;
+  if(ns){
+    const alb = tracks[i].album ?? '';
+    const yr  = tracks[i].year;
+    ns.textContent = (yr !== undefined && yr !== null && yr !== '')
+      ? `${alb} — ${yr}` : alb;
+  }
+  document.querySelectorAll('.ptk').forEach((el,j)=>el.classList.toggle('on',j===i));
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var ab=document.querySelector('button.eb.p');
+  if(ab){
+    ab.classList.add('ab-pulse');
+    ab.addEventListener('animationend',function abPulseEnd(e){
+      if(e.animationName!=='ab-pulse')return;
+      ab.classList.remove('ab-pulse');
+      ab.removeEventListener('animationend',abPulseEnd);
+    });
+  }
+  var dt=document.getElementById('ditherTop');
+  if(dt)dt.addEventListener('click',function(){var b=document.getElementById('dOn');if(b)b.click();});
+});
+</script>
+</body>
+</html>
+
