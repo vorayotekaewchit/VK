@@ -1,4 +1,4 @@
-# VK (2026) — Dither + Music Playlist
+# V (2026) — Dither + Music Playlist
 
 ## Contact form (privacy)
 
