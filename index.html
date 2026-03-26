@@ -61,7 +61,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 /* bottom nav */
 #bot{grid-column:1/-1;grid-row:3;display:flex;align-items:stretch;border-top:1px solid var(--b);background:rgba(0,0,0,.92);}
-.nn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--b);font-size:8px;letter-spacing:.18em;color:var(--fg3);text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s;position:relative;}
+.nn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--b);font-size:9px;letter-spacing:.12em;color:var(--fg2);text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s;position:relative;}
 .nn:last-child{border-right:none;}
 .nn::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--ac);transform:scaleX(0);transition:transform .2s;}
 .nn:hover::after,.nn.on::after{transform:scaleX(1);}
@@ -134,9 +134,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .pip.on{background:var(--ac);width:28px;}
 /* Phase 01 indicator: white so it doesn’t track the theme accent; other phases keep --ac */
 #pips .pip:first-child.on{background:#fff;box-shadow:0 0 12px rgba(255,255,255,.2);}
-.hland{margin-top:12px;font-size:7px;letter-spacing:.2em;color:var(--fg2);text-transform:uppercase;line-height:1.6;max-width:32em;}
+.hland{margin-top:12px;font-size:8px;letter-spacing:.12em;color:var(--fg2);text-transform:uppercase;line-height:1.7;max-width:42em;}
 .hland em{font-style:normal;color:var(--fg);opacity:.95;}
 .hint{margin-top:10px;}
+.guide{
+  margin-top:12px;
+  border:1px solid var(--b2);
+  background:rgba(200,255,110,.03);
+  padding:10px 12px;
+}
+.guide-title{
+  font-size:8px;
+  letter-spacing:.14em;
+  color:var(--fg);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.guide-row{
+  font-size:9px;
+  letter-spacing:.02em;
+  line-height:1.8;
+  color:var(--fg2);
+}
 
 /* scroll sequence indicator */
 #seq{
@@ -159,9 +178,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 #abar{
   position:absolute;bottom:0;left:0;right:0;height:1px;
   background:var(--ac);transform-origin:left;transform:scaleX(1);
-  transition:transform 3.5s linear;
+  opacity:.95;
+  transition:opacity .15s;
 }
-#abar.run{transform:scaleX(0);}
 #abar.hidden{display:none;}
 
 /* dither ctrl */
@@ -266,8 +285,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 }
 @keyframes ab-pulse{0%,100%{border-color:var(--ac);color:var(--ac)}50%{border-color:#fff;color:#fff}}
 .eb.p.ab-pulse{animation:ab-pulse 2.5s ease-in-out 3}
-.hint-main{font-size:8px;color:var(--fg2);letter-spacing:.18em;display:block;margin-bottom:3px}
-.hint-sub{font-size:7px;letter-spacing:.14em;color:var(--fg2);opacity:.45;display:block}
+.hint-main{font-size:9px;color:var(--fg);letter-spacing:.08em;display:block;margin-bottom:4px}
+.hint-sub{font-size:8px;letter-spacing:.06em;color:var(--fg2);opacity:.85;display:block}
 .ti.dtl{cursor:pointer}
 .ti.dtl:hover{color:var(--ac)}
 </style>
@@ -393,15 +412,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
         <button class="eb"    onclick="openM('PR')">PROJECTS</button>
         <button class="eb"    onclick="openM('MU')">MUSIC</button>
         <button class="eb ht" onclick="openM('CO')">CONTACT</button>
+        <button class="eb"    onclick="openM('CO')">OPEN LINKS // ROUTER</button>
       </div>
-      <p class="hland"><em>SINGLE PAGE</em> — No document scroll. Wheel or swipe <em>previews</em> sections; click a tab to keep it open.</p>
+      <p class="hland"><em>ONE PAGE WEBSITE</em> — Use the bottom menu to open sections. Scroll or swipe to preview. Click a section name to keep it open.</p>
+      <div class="guide">
+        <div class="guide-title">Quick start</div>
+        <div class="guide-row">1) Click <em>About</em>, <em>Projects</em>, <em>Music</em>, <em>Contact</em>, or <em>Work</em>.</div>
+        <div class="guide-row">2) Move your mouse over a menu item to preview it.</div>
+        <div class="guide-row">3) Press <em>Esc</em> or click Close to exit a section.</div>
+      </div>
       <div class="pips" id="pips">
         <div class="pip on" onclick="goPhase(0)"></div>
         <div class="pip"    onclick="goPhase(1)"></div>
         <div class="pip"    onclick="goPhase(2)"></div>
         <div class="pip"    onclick="goPhase(3)"></div>
       </div>
-      <div class="hint"><span class="hint-main">↓ SCROLL OR SWIPE TO EXPLORE</span><span class="hint-sub">CLICK ANY BUTTON TO HOLD OPEN · ESC CLOSES</span></div>
+      <div class="hint"><span class="hint-main">Use the menu at the bottom to navigate</span><span class="hint-sub">Tip: Hover to preview, click to keep open, press Esc to close</span></div>
     </div>
   </div>
 
@@ -459,7 +485,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     <div class="nn" onclick="openM('CO')"><span class="nk">[CO]</span>Contact</div>
     <div class="nn" onclick="openM('WK')"><span class="nk">[WK]</span>Work</div>
     <div class="nn" onclick="window.open('https://github.com/vorayotekaewchit','_blank')"><span class="nk">[GH]</span>GitHub</div>
-    <div class="nn" id="pbtn"><span class="nk">[+]</span>Phase</div>
+    <div class="nn" id="pbtn"><span class="nk">[+]</span>Theme</div>
   </div>
 
 </div><!-- /hud -->
@@ -613,10 +639,14 @@ window.addEventListener('resize', drawDither);
 ══════════════════════ */
 const AUTO_CLOSE_MS = 3500;
 const SCROLL_LOCK_MS = 300;
+const HOVER_CLOSE_MS = 150;
 const SEQ    = ['AB','PR','MU','CO','WK'];
 let seqIdx   = -1;        // -1 = no section open via scroll
 let manualOpen = false;   // true = opened by click, skip auto-close
 let autoTimer  = null;
+let autoCloseDeadline = 0;
+let countdownRaf = null;
+let hoverCloseTimer = null;
 let scrollLock = false;   // debounce rapid scroll events
 let touchStartY = 0;
 let idleMoveLast = 0;
@@ -641,19 +671,38 @@ function showSeq(visible) {
   document.getElementById('seq').classList.toggle('vis', visible);
 }
 
-// Countdown bar — duration matches AUTO_CLOSE_MS
+// Countdown bar — real-time progress for smoother reset behavior
+function stopCountdownLoop() {
+  if (countdownRaf) cancelAnimationFrame(countdownRaf);
+  countdownRaf = null;
+}
+function tickCountdown() {
+  const bar = document.getElementById('abar');
+  if (!bar || !autoCloseDeadline) return;
+  const remaining = Math.max(0, autoCloseDeadline - performance.now());
+  const ratio = remaining / AUTO_CLOSE_MS;
+  bar.style.transform = `scaleX(${ratio})`;
+  if (ratio <= 0) {
+    stopCountdownLoop();
+    return;
+  }
+  countdownRaf = requestAnimationFrame(tickCountdown);
+}
 function startCountdown() {
   const bar = document.getElementById('abar');
   if (!bar) return;
-  bar.style.transitionDuration = AUTO_CLOSE_MS + 'ms';
-  bar.classList.remove('hidden','run');
-  void bar.offsetWidth;
-  bar.classList.add('run');
+  stopCountdownLoop();
+  bar.classList.remove('hidden');
+  bar.style.transform = 'scaleX(1)';
+  autoCloseDeadline = performance.now() + AUTO_CLOSE_MS;
+  countdownRaf = requestAnimationFrame(tickCountdown);
 }
 function stopCountdown() {
   const bar = document.getElementById('abar');
   if (!bar) return;
-  bar.classList.remove('run');
+  stopCountdownLoop();
+  autoCloseDeadline = 0;
+  bar.style.transform = 'scaleX(1)';
   bar.classList.add('hidden');
 }
 
@@ -665,6 +714,13 @@ function clearAutoClose() {
   document.getElementById('seq-auto').textContent = '';
 }
 
+function triggerAutoClose() {
+  closeM();
+  showSeq(false);
+  seqIdx = -1;
+  document.getElementById('seq-auto').textContent = '';
+}
+
 // Schedule auto-close after idle (scroll preview mode only)
 function scheduleAutoClose() {
   clearAutoClose();
@@ -672,17 +728,44 @@ function scheduleAutoClose() {
   startCountdown();
   const sec = (AUTO_CLOSE_MS / 1000).toFixed(1).replace(/\.0$/, '');
   document.getElementById('seq-auto').textContent = 'PREVIEW · ' + sec + 's';
-  autoTimer = setTimeout(() => {
-    closeM();
-    showSeq(false);
-    seqIdx = -1;
-    document.getElementById('seq-auto').textContent = '';
-  }, AUTO_CLOSE_MS);
+  autoTimer = setTimeout(triggerAutoClose, AUTO_CLOSE_MS);
+}
+
+function isHoveringPreviewArea() {
+  const bot = document.getElementById('bot');
+  const modal = document.getElementById('modal');
+  return !!(bot?.matches(':hover') || modal?.matches(':hover'));
+}
+
+function queueHoverCloseCheck() {
+  clearTimeout(hoverCloseTimer);
+  hoverCloseTimer = setTimeout(() => {
+    const m = document.getElementById('modal');
+    if (!m.classList.contains('open') || manualOpen || !m.classList.contains('scroll-mode')) return;
+    if (isHoveringPreviewArea()) return;
+    triggerAutoClose();
+  }, HOVER_CLOSE_MS);
+}
+
+function openHoverPreview(id) {
+  if (manualOpen) return;
+  const idx = SEQ.indexOf(id);
+  if (idx < 0) return;
+  clearTimeout(hoverCloseTimer);
+  seqIdx = idx;
+  document.getElementById('modal').classList.add('scroll-mode');
+  openMInternal(id);
+  updateSeqUI(seqIdx);
+  showSeq(true);
+  clearAutoClose();
+  stopCountdown();
+  document.getElementById('seq-auto').textContent = 'PREVIEW · HOVER';
 }
 
 function maybeRefreshIdle(e) {
   const m = document.getElementById('modal');
   if (!m.classList.contains('open') || manualOpen || !m.classList.contains('scroll-mode')) return;
+  if (isHoveringPreviewArea()) return;
   if (e.type === 'pointermove' || e.type === 'touchmove') {
     const n = Date.now();
     if (n - idleMoveLast < 100) return;
@@ -766,6 +849,17 @@ window.addEventListener('wheel', e => {
 window.addEventListener('pointermove', maybeRefreshIdle, { passive: true });
 window.addEventListener('touchmove', maybeRefreshIdle, { passive: true });
 document.getElementById('modal').addEventListener('scroll', maybeRefreshIdle, true);
+document.getElementById('pl').addEventListener('scroll', maybeRefreshIdle, { passive: true });
+document.getElementById('pr').addEventListener('scroll', maybeRefreshIdle, { passive: true });
+document.querySelectorAll('#bot .nn').forEach(btn => {
+  btn.addEventListener('mouseenter', () => {
+    const keyEl = btn.querySelector('.nk');
+    const key = keyEl ? keyEl.textContent.replace('[','').replace(']','') : '';
+    if (SEQ.includes(key)) openHoverPreview(key);
+  });
+});
+document.getElementById('bot').addEventListener('mouseleave', queueHoverCloseCheck);
+document.getElementById('modal').addEventListener('mouseleave', queueHoverCloseCheck);
 
 // Touch swipe
 window.addEventListener('touchstart', e => {
@@ -975,7 +1069,7 @@ symp.textContent=Array.from({length:55},()=>SYMS[Math.floor(Math.random()*SYMS.l
    SECTIONS
 ══════════════════════ */
 /* Formspree (or compatible POST URL). Set your /f/xxx id — email is not stored in this file. */
-const CONTACT_FORM_ACTION = 'https://formspree.io/f/YOUR_FORMSPREE_ID';
+const CONTACT_FORM_ACTION = 'https://formspree.io/f/mgopvvad';
 
 const S={
   AB:{title:'ABOUT',sub:'IDENTITY',ref:'01',nav:['Identity','Stack','Languages'],html:`
@@ -1049,17 +1143,28 @@ const S={
     <p class="mbt">Available for <em>freelance</em>, <em>commissions</em>, and creative partnership. Paris-based, remote-friendly.</p>
     <div class="mdiv"></div>
     <div class="mlbl">MESSAGE (NO EMAIL IN PAGE SOURCE)</div>
-    <form class="cform" action="${CONTACT_FORM_ACTION}" method="POST">
+    <form class="cform" id="contactForm" action="${CONTACT_FORM_ACTION}" method="POST" novalidate>
       <input type="hidden" name="_subject" value="V site — contact" />
-      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-hidden="true" />
+      <input type="text" id="contactGotcha" name="_gotcha" tabindex="-1" autocomplete="off" inputmode="none" style="display:none !important" aria-hidden="true" />
+      <input type="hidden" id="formStartedAt" name="form_started_at" value="" />
       <label class="cfl"><span>Name</span><input class="cfi" type="text" name="name" required autocomplete="name" maxlength="200" /></label>
       <label class="cfl"><span>Your email</span><input class="cfi" type="email" name="email" required autocomplete="email" maxlength="320" /></label>
       <label class="cfl"><span>Message</span><textarea class="cfa" name="message" required rows="5" maxlength="8000"></textarea></label>
+      <label class="cfl"><span>Human check (answer with a number): How many eyes does a human typically have?</span><input class="cfi" id="humanCheck" type="text" name="human_check" required autocomplete="off" inputmode="numeric" /></label>
       <button class="cfs" type="submit">Send</button>
+      <p id="contactFormError" class="cffoot" style="display:none;color:#ff7b7b;margin-top:6px">Please check the form and try again.</p>
     </form>
     <p class="cffoot">Uses a secure form relay (e.g. Formspree) — your address is not exposed here, which reduces scrape spam.</p>
     <div class="mdiv"></div>
     <div class="mrow"><span class="ml">SOUNDCLOUD</span><a class="mlink" href="https://soundcloud.com" target="_blank" rel="noopener noreferrer">V Music</a></div>
+    <div class="mdiv"></div>
+    <div class="mlbl">LINKS // ROUTER</div>
+    <div class="mterm" style="margin-bottom:8px">
+      <div class="mtl"><span class="mtp">[01]</span><a class="mlink" href="https://soundcloud.com" target="_blank" rel="noopener noreferrer">SoundCloud</a> <span class="mto g">[STREAM]</span></div>
+      <div class="mtl"><span class="mtp">[02]</span><a class="mlink" href="#contactForm">Commissions</a> <span class="mto g">[OPEN]</span></div>
+      <div class="mtl"><span class="mtp">[03]</span><a class="mlink" href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a> <span class="mto">[SOCIAL]</span></div>
+      <div class="mtl"><span class="mtp">[04]</span><a class="mlink" href="https://youtube.com" target="_blank" rel="noopener noreferrer">YouTube</a> <span class="mto">[VIDEO]</span></div>
+    </div>
     <div class="mdiv"></div>
     <div class="mterm">
       <div class="mtl"><span class="mtp">$</span>ping v --locate</div>
@@ -1099,6 +1204,7 @@ function openMInternal(id) {
   document.getElementById('modal').classList.add('open');
   document.querySelectorAll('.nn').forEach(b => b.classList.toggle('on', b.textContent.includes(`[${id}]`)));
   if (id === 'MU') initPlayer();
+  if (id === 'CO') initContactForm();
 }
 
 // Manual open — click from buttons / nav bar
@@ -1116,6 +1222,7 @@ function openM(id) {
 
 function closeM() {
   manualOpen = false;
+  clearTimeout(hoverCloseTimer);
   clearAutoClose();
   document.getElementById('modal').classList.remove('open','scroll-mode');
   document.querySelectorAll('.nn').forEach(b => b.classList.remove('on'));
@@ -1251,6 +1358,44 @@ document.addEventListener('DOMContentLoaded',function(){
   var dt=document.getElementById('ditherTop');
   if(dt)dt.addEventListener('click',function(){var b=document.getElementById('dOn');if(b)b.click();});
 });
+
+function initContactForm() {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+
+  const startedAt = document.getElementById('formStartedAt');
+  const humanCheck = document.getElementById('humanCheck');
+  const gotcha = document.getElementById('contactGotcha');
+  const errorEl = document.getElementById('contactFormError');
+  if (!startedAt || !humanCheck || !errorEl || !gotcha) return;
+
+  startedAt.value = String(Date.now());
+  gotcha.value = '';
+
+  form.addEventListener('submit', function (e) {
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+    // Clear false positives from browser extensions/autofill.
+    gotcha.value = '';
+
+    const answer = String(humanCheck.value || '').trim().toLowerCase();
+    const isHumanAnswerValid = answer === '2' || answer === 'two';
+    if (!isHumanAnswerValid) {
+      e.preventDefault();
+      errorEl.textContent = 'Please answer the human-check question correctly.';
+      errorEl.style.display = 'block';
+      humanCheck.focus();
+      return;
+    }
+
+    const elapsedMs = Date.now() - Number(startedAt.value || 0);
+    if (!startedAt.value || elapsedMs < 3500) {
+      e.preventDefault();
+      errorEl.textContent = 'Please wait a few seconds before sending.';
+      errorEl.style.display = 'block';
+    }
+  }, { once: true });
+}
 </script>
 </body>
 </html>
