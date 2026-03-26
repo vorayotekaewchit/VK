@@ -285,12 +285,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   .btns{gap:6px;}
   .eb{font-size:8px;letter-spacing:.1em;padding:10px 12px;min-height:42px;}
   .hint-sub{display:none;}
-  #bot{overflow-x:auto;scrollbar-width:none;}
-  #bot::-webkit-scrollbar{display:none;}
-  .nn{min-width:56px;max-width:56px;flex:0 0 auto;justify-content:center;padding:0 10px;font-size:8px;letter-spacing:.04em;gap:4px;overflow:hidden;transition:max-width .2s ease,min-width .2s ease,padding .2s ease;}
-  .nn .nl{max-width:0;opacity:0;overflow:hidden;transition:max-width .2s ease,opacity .15s ease;}
-  .nn.on{min-width:118px;max-width:118px;justify-content:flex-start;padding:0 12px;}
-  .nn.on .nl{max-width:72px;opacity:1;}
+  #bot{overflow:hidden;}
+  .nn{min-width:0;max-width:none;flex:1 1 0;justify-content:center;padding:0 4px;font-size:8px;letter-spacing:.03em;gap:3px;overflow:hidden;}
+  .nn .nl{display:none;}
   #dctrl{bottom:52px;right:8px;}
   #modal{grid-template-columns:1fr;inset:25px 0 44px 0;}
   #mside{display:none;}
@@ -679,6 +676,8 @@ let countdownRaf = null;
 let hoverCloseTimer = null;
 let scrollLock = false;   // debounce rapid scroll events
 let touchStartY = 0;
+let touchStartX = 0;
+let touchStartInTop = false;
 let idleMoveLast = 0;
 
 // Indicator pips + label
@@ -895,13 +894,32 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
 
 // Touch swipe
 window.addEventListener('touchstart', e => {
-  touchStartY = e.touches[0].clientY;
+  const touch = e.touches[0];
+  touchStartY = touch.clientY;
+  touchStartX = touch.clientX;
+  const top = document.getElementById('top');
+  const topRect = top ? top.getBoundingClientRect() : { top: 0, bottom: 30 };
+  touchStartInTop = touch.clientY >= topRect.top && touch.clientY <= (topRect.bottom + 6);
 }, { passive: true });
 
 window.addEventListener('touchend', e => {
-  const delta = touchStartY - e.changedTouches[0].clientY;
-  if (Math.abs(delta) < 30) return; // ignore tiny taps
-  handleScrollNav(delta > 0 ? 1 : -1);
+  const touch = e.changedTouches[0];
+  const deltaY = touchStartY - touch.clientY;
+  const deltaX = touchStartX - touch.clientX;
+  const isMostlyVertical = Math.abs(deltaY) > Math.abs(deltaX) * 1.15;
+  if (!isMostlyVertical || Math.abs(deltaY) < 35) return; // ignore tiny/diagonal swipes
+
+  const modal = document.getElementById('modal');
+  const modalIsOpen = modal.classList.contains('open');
+  if (modalIsOpen && touchStartInTop && deltaY < -35) {
+    // Swipe down from top bar closes current section quickly on mobile.
+    closeM();
+    showSeq(false);
+    seqIdx = -1;
+    return;
+  }
+
+  handleScrollNav(deltaY > 0 ? 1 : -1);
 }, { passive: true });
 
 /* ── dither controls ── */
