@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>V — 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
@@ -67,6 +67,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .nn:hover::after,.nn.on::after{transform:scaleX(1);}
 .nn:hover,.nn.on{color:var(--fg);background:rgba(200,255,110,.03);}
 .nk{color:var(--ac);font-size:7px;}
+.nl{white-space:nowrap;}
 
 /* hud widgets */
 .hl{font-size:7px;letter-spacing:.26em;color:var(--fg3);text-transform:uppercase;margin-bottom:3px;display:flex;justify-content:space-between;}
@@ -274,14 +275,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .cfs:hover{border-color:var(--ac);color:var(--ac);}
 .cffoot{font-size:8px;color:var(--fg3);letter-spacing:.1em;margin-top:6px;line-height:1.6;opacity:.85;}
 
-@media(max-width:820px){
+@media(max-width:900px){
   #pl,#pr{display:none;}
-  #hud{grid-template-columns:1fr;}
-  #stage{grid-column:1;}
-  #modal{grid-template-columns:1fr;}
+  #hud{grid-template-columns:1fr;grid-template-rows:25px 1fr 44px;}
+  #stage{grid-column:1;padding:8px 0;align-items:flex-start;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+  #hero{width:calc(100% - 20px);max-width:none;padding:20px 16px;margin:0 auto 16px;}
+  #top{padding:0 10px;gap:6px;}
+  .tk,.tdv:nth-of-type(3),#ditherTop{display:none;}
+  .btns{gap:6px;}
+  .eb{font-size:8px;letter-spacing:.1em;padding:10px 12px;min-height:42px;}
+  .hint-sub{display:none;}
+  #bot{overflow-x:auto;scrollbar-width:none;}
+  #bot::-webkit-scrollbar{display:none;}
+  .nn{min-width:56px;max-width:56px;flex:0 0 auto;justify-content:center;padding:0 10px;font-size:8px;letter-spacing:.04em;gap:4px;overflow:hidden;transition:max-width .2s ease,min-width .2s ease,padding .2s ease;}
+  .nn .nl{max-width:0;opacity:0;overflow:hidden;transition:max-width .2s ease,opacity .15s ease;}
+  .nn.on{min-width:118px;max-width:118px;justify-content:flex-start;padding:0 12px;}
+  .nn.on .nl{max-width:72px;opacity:1;}
+  #dctrl{bottom:52px;right:8px;}
+  #modal{grid-template-columns:1fr;inset:25px 0 44px 0;}
   #mside{display:none;}
-  #mbody{padding:18px;}
+  #mbody{padding:16px 14px;}
   .mgrid{grid-template-columns:1fr;}
+  .mterm{padding:9px;}
+  .mtl{flex-wrap:wrap;row-gap:2px;}
+  .mto{padding-left:0;}
+  .cform{max-width:none;}
+  .cfi,.cfa{font-size:16px;min-height:44px;padding:10px 11px;}
+  .cfs{align-self:stretch;width:100%;min-height:44px;}
+}
+@media(max-width:640px){
+  .href{font-size:7px;letter-spacing:.16em;margin-bottom:10px;}
+  .hname{font-size:clamp(1.6rem,9vw,2.2rem);}
+  .hdoc{font-size:9px;line-height:1.65;}
+  .mlbl{letter-spacing:.14em;}
+  .guide{padding:8px 10px;}
+  .guide-row{font-size:8px;line-height:1.6;}
+  .btns .eb{flex:1 1 calc(50% - 6px);}
+  .btns .eb:last-child{flex-basis:100%;}
 }
 @keyframes ab-pulse{0%,100%{border-color:var(--ac);color:var(--ac)}50%{border-color:#fff;color:#fff}}
 .eb.p.ab-pulse{animation:ab-pulse 2.5s ease-in-out 3}
@@ -479,13 +509,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   </div>
 
   <div id="bot">
-    <div class="nn" onclick="openM('AB')"><span class="nk">[AB]</span>About</div>
-    <div class="nn" onclick="openM('PR')"><span class="nk">[PR]</span>Projects</div>
-    <div class="nn" onclick="openM('MU')"><span class="nk">[MU]</span>Music</div>
-    <div class="nn" onclick="openM('CO')"><span class="nk">[CO]</span>Contact</div>
-    <div class="nn" onclick="openM('WK')"><span class="nk">[WK]</span>Work</div>
-    <div class="nn" onclick="window.open('https://github.com/vorayotekaewchit','_blank')"><span class="nk">[GH]</span>GitHub</div>
-    <div class="nn" id="pbtn"><span class="nk">[+]</span>Theme</div>
+    <div class="nn" onclick="openM('AB')"><span class="nk">[AB]</span><span class="nl">About</span></div>
+    <div class="nn" onclick="openM('PR')"><span class="nk">[PR]</span><span class="nl">Projects</span></div>
+    <div class="nn" onclick="openM('MU')"><span class="nk">[MU]</span><span class="nl">Music</span></div>
+    <div class="nn" onclick="openM('CO')"><span class="nk">[CO]</span><span class="nl">Contact</span></div>
+    <div class="nn" onclick="openM('WK')"><span class="nk">[WK]</span><span class="nl">Work</span></div>
+    <div class="nn" onclick="window.open('https://github.com/vorayotekaewchit','_blank')"><span class="nk">[GH]</span><span class="nl">GitHub</span></div>
+    <div class="nn" id="pbtn"><span class="nk">[+]</span><span class="nl">Theme</span></div>
   </div>
 
 </div><!-- /hud -->
@@ -851,15 +881,17 @@ window.addEventListener('touchmove', maybeRefreshIdle, { passive: true });
 document.getElementById('modal').addEventListener('scroll', maybeRefreshIdle, true);
 document.getElementById('pl').addEventListener('scroll', maybeRefreshIdle, { passive: true });
 document.getElementById('pr').addEventListener('scroll', maybeRefreshIdle, { passive: true });
-document.querySelectorAll('#bot .nn').forEach(btn => {
-  btn.addEventListener('mouseenter', () => {
-    const keyEl = btn.querySelector('.nk');
-    const key = keyEl ? keyEl.textContent.replace('[','').replace(']','') : '';
-    if (SEQ.includes(key)) openHoverPreview(key);
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  document.querySelectorAll('#bot .nn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      const keyEl = btn.querySelector('.nk');
+      const key = keyEl ? keyEl.textContent.replace('[','').replace(']','') : '';
+      if (SEQ.includes(key)) openHoverPreview(key);
+    });
   });
-});
-document.getElementById('bot').addEventListener('mouseleave', queueHoverCloseCheck);
-document.getElementById('modal').addEventListener('mouseleave', queueHoverCloseCheck);
+  document.getElementById('bot').addEventListener('mouseleave', queueHoverCloseCheck);
+  document.getElementById('modal').addEventListener('mouseleave', queueHoverCloseCheck);
+}
 
 // Touch swipe
 window.addEventListener('touchstart', e => {
