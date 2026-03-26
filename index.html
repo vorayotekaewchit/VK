@@ -199,6 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 #modal{position:fixed;inset:25px 0 36px 0;z-index:50;display:none;grid-template-columns:184px 1fr;background:rgba(0,0,0,.97);border-top:1px solid var(--b2);overflow:hidden;animation:rv .25s ease;}
 #modal.open{display:grid;}
 @keyframes rv{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#mclosehint{display:none;}
 #mside{border-right:1px solid var(--b);padding:16px 13px;display:flex;flex-direction:column;background:rgba(0,0,0,.5);}
 #mref{font-size:7px;letter-spacing:.28em;color:var(--fg3);text-transform:uppercase;margin-bottom:4px;}
 #mtitle{font-size:12px;letter-spacing:.16em;color:var(--fg);text-transform:uppercase;margin-bottom:2px;}
@@ -278,12 +279,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 @media(max-width:900px){
   #pl,#pr{display:none;}
-  #hud{grid-template-columns:1fr;grid-template-rows:25px 1fr 44px;}
-  #stage{grid-column:1;padding:8px 0;align-items:flex-start;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
-  #hero{width:calc(100% - 20px);max-width:none;padding:20px 16px;margin:0 auto 16px;}
-  #top{padding:0 10px;gap:6px;}
+  #hud{grid-template-columns:1fr;grid-template-rows:25px 1fr 44px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);}
+  #stage{grid-column:1;min-width:0;padding:8px 0;align-items:flex-start;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+  #hero{width:auto;max-width:100%;padding:20px 16px;margin:0 10px 16px;}
+  #top{min-width:0;padding:0 10px;gap:6px;overflow:hidden;}
   .tk,.tdv:nth-of-type(3),#ditherTop{display:none;}
-  #mghint{display:inline-block;font-size:7px;letter-spacing:.08em;color:var(--fg2);}
+  #mghint{display:inline-block;font-size:7px;letter-spacing:.08em;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;}
   .btns{gap:6px;}
   .eb{font-size:8px;letter-spacing:.1em;padding:10px 12px;min-height:42px;}
   .hint-sub{display:none;}
@@ -292,6 +293,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   .nn .nl{display:none;}
   #dctrl{bottom:52px;right:8px;}
   #modal{grid-template-columns:1fr;inset:25px 0 44px 0;}
+  #mclosehint{display:block;position:absolute;top:2px;left:0;right:0;z-index:2;text-align:center;font-size:6.5px;letter-spacing:.09em;color:var(--fg2);opacity:.75;pointer-events:none;}
   #mside{display:none;}
   #mbody{padding:16px 14px;}
   .mgrid{grid-template-columns:1fr;}
@@ -311,7 +313,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   .guide-row{font-size:8px;line-height:1.6;}
   .btns .eb{flex:1 1 calc(50% - 6px);}
   .btns .eb:last-child{flex-basis:100%;}
-  #mghint{font-size:6.5px;letter-spacing:.05em;}
+  #mghint{font-size:6px;letter-spacing:.04em;}
 }
 @keyframes ab-pulse{0%,100%{border-color:var(--ac);color:var(--ac)}50%{border-color:#fff;color:#fff}}
 .eb.p.ab-pulse{animation:ab-pulse 2.5s ease-in-out 3}
@@ -536,6 +538,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 <!-- AUTO-CLOSE COUNTDOWN BAR inside modal -->
 <div id="modal">
   <div id="abar" class="hidden"></div>
+  <div id="mclosehint">SWIPE DOWN FROM TOP AREA TO CLOSE</div>
   <div id="mside">
     <div id="mref">REF // 00</div>
     <div id="mtitle">SECTION</div>
@@ -683,6 +686,7 @@ let scrollLock = false;   // debounce rapid scroll events
 let touchStartY = 0;
 let touchStartX = 0;
 let touchStartInTop = false;
+let touchStartInCloseZone = false;
 let idleMoveLast = 0;
 
 // Indicator pips + label
@@ -905,6 +909,14 @@ window.addEventListener('touchstart', e => {
   const top = document.getElementById('top');
   const topRect = top ? top.getBoundingClientRect() : { top: 0, bottom: 30 };
   touchStartInTop = touch.clientY >= topRect.top && touch.clientY <= (topRect.bottom + 6);
+  const modal = document.getElementById('modal');
+  const modalOpen = modal && modal.classList.contains('open');
+  if (modalOpen) {
+    const mRect = modal.getBoundingClientRect();
+    touchStartInCloseZone = touch.clientY >= mRect.top && touch.clientY <= (mRect.top + 96);
+  } else {
+    touchStartInCloseZone = false;
+  }
 }, { passive: true });
 
 window.addEventListener('touchend', e => {
@@ -914,7 +926,7 @@ window.addEventListener('touchend', e => {
 
   const modal = document.getElementById('modal');
   const modalIsOpen = modal.classList.contains('open');
-  if (modalIsOpen && touchStartInTop && deltaY < -35) {
+  if (modalIsOpen && (touchStartInTop || touchStartInCloseZone) && deltaY < -35) {
     // Swipe down from top bar closes current section quickly on mobile.
     closeM();
     showSeq(false);
